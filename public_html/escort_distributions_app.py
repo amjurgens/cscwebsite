@@ -56,10 +56,8 @@ def MSP_data(Ts, N=4000, N_trans=100):
         x = np.sqrt(2)*(Z[0] + Z[1]/2.0)
         y = Z[1]*np.sqrt(6.0)/2.0
         Ps.append(Z)
-        Xs.append(x)
-        Ys.append(y)
 
-    return Xs, Ys, Ps
+    return Ps
 
 alpha_Ts = [np.array([[2.73431071e-02, 3.91962466e-01, 1.92405399e-02],
                       [4.74783405e-01, 2.17601974e-02, 2.76643585e-04],
@@ -82,27 +80,23 @@ beta_Ts = [np.array([[0.0500099 , 0.38761941, 0.04250754],
                      [0.04933224, 0.00118304, 0.00081273]])]
 
 sarah_Ts = [np.array([[0.48, 0.02, 0.02],
-        [0.06, 0.16, 0.02],
-        [0.06, 0.02, 0.16]]),
- np.array([[0.16, 0.06, 0.02],
-        [0.02, 0.48, 0.02],
-        [0.02, 0.06, 0.16]]),
- np.array([[0.16, 0.02, 0.06],
-        [0.02, 0.16, 0.06],
-        [0.02, 0.02, 0.48]])]
+                      [0.06, 0.16, 0.02],
+                      [0.06, 0.02, 0.16]]),
+            np.array([[0.16, 0.06, 0.02],
+                      [0.02, 0.48, 0.02],
+                      [0.02, 0.06, 0.16]]),
+            np.array([[0.16, 0.02, 0.06],
+                      [0.02, 0.16, 0.06],
+                      [0.02, 0.02, 0.48]])]
 
+N_points = 5000
+marker_size = 1
 
-alpha_Xs, alpha_Ys, alpha_Ps = MSP_data(alpha_Ts)
-alpha_P0, alpha_P1, alpha_P2 = zip(*alpha_Ps)
+alpha_P0, alpha_P1, alpha_P2 = zip(*MSP_data(alpha_Ts, N=N_points))
+beta_P0, beta_P1, beta_P2 = zip(*MSP_data(beta_Ts, N=N_points))
+sarah_P0, sarah_P1, sarah_P2 = zip(*MSP_data(sarah_Ts, N=N_points))
 
-beta_Xs, beta_Ys, beta_Ps = MSP_data(beta_Ts)
-beta_P0, beta_P1, beta_P2 = zip(*beta_Ps)
-
-sarah_Xs, sarah_Ys, sarah_Ps = MSP_data(sarah_Ts)
-sarah_P0, sarah_P1, sarah_P2 = zip(*sarah_Ps)
-
-source = ColumnDataSource(data=dict(x=sarah_Xs, y=sarah_Ys,
-                                    p0=sarah_P0, p1=sarah_P1, p2=sarah_P2,
+source = ColumnDataSource(data=dict(x=[0]*N_points, y=[0]*N_points,
                                     alpha_p0=alpha_P0, alpha_p1=alpha_P1, alpha_p2=alpha_P2,
                                     beta_p0=beta_P0, beta_p1=beta_P1, beta_p2=beta_P2,
                                     sarah_p0=sarah_P0, sarah_p1=sarah_P1, sarah_p2=sarah_P2))
@@ -124,59 +118,55 @@ p.line([left_corner[0], top_corner[0]], [left_corner[1], top_corner[1]], color='
 p.line([right_corner[0], top_corner[0]], [right_corner[1], top_corner[1]], color='black', width=2)
 p.line([left_corner[0], right_corner[0]], [left_corner[1], right_corner[1]], color='black', width=2)
 
+# add points
+p.circle('x', 'y', source=source, size=marker_size, color='navy', alpha=0.8)
 
-p.circle('x', 'y', source=source, size=2, color='navy', alpha=0.8)
-# p.line('x', 'y', source=source, line_width=3, line_alpha=0.6)
+# add widgets 
+LABELS = ["Option 1", "Option 2", "Option 3"]
+radio_button_group = RadioButtonGroup(labels=LABELS, active=None)
+slider = Slider(start=-4, end=4, value=1, step=.05, title="Beta")
 
-button_callback = CustomJS(args=dict(source=source), code="""
+# button javascript
+button_callback = CustomJS(args=dict(source=source, button=radio_button_group, slider=slider), code="""
     var data = source.data;
     var x = data['x'];
     var y = data['y'];
-    var P0 = data['p0'];
-    var P1 = data['p1'];
-    var P2 = data['p2'];
+    var m = button.active;
 
-    if (cb_obj.active == 0) {
-        P0 = data['alpha_p0'];
-        P1 = data['alpha_p1'];
-        P2 = data['alpha_p2'];
+    if (m == 0) {
+        var P0 = data['alpha_p0'];
+        var P1 = data['alpha_p1'];
+        var P2 = data['alpha_p2'];
 
         for (var i = 0; i < x.length; i++) {
         x[i] =  Math.sqrt(2) * (P0[i] + P1[i] / 2);
         y[i] = P1[i] * Math.sqrt(6) * 0.5 };
 
-    } else if (cb_obj.active == 1) {
-        P0 = data['beta_p0'];
-        P1 = data['beta_p1'];
-        P2 = data['beta_p2'];
+    } else if (m == 1) {
+        var P0 = data['beta_p0'];
+        var P1 = data['beta_p1'];
+        var P2 = data['beta_p2'];
         
         for (var i = 0; i < x.length; i++) {
         x[i] =  Math.sqrt(2) * (P0[i] + P1[i] / 2);
         y[i] = P1[i] * Math.sqrt(6) * 0.5 };
 
-    } else if (cb_obj.active == 2) {
-        P0 = data['sarah_p0'];
-        P1 = data['sarah_p1'];
-        P2 = data['sarah_p2'];
+    } else if (m == 2) {
+        var P0 = data['sarah_p0'];
+        var P1 = data['sarah_p1'];
+        var P2 = data['sarah_p2'];
         
         for (var i = 0; i < x.length; i++) {
         x[i] =  Math.sqrt(2) * (P0[i] + P1[i] / 2);
         y[i] = P1[i] * Math.sqrt(6) * 0.5 };
     }
-    
+    slider.value = 1.0
     source.change.emit();
 
 """)
 
-LABELS = ["Option 1", "Option 2", "Option 3"]
-
-radio_button_group = RadioButtonGroup(labels=LABELS, active=0)
-# radio_button_group.js_on_click(CustomJS(code="""
-#     console.log('radio_button_group: active=' + this.active, this.toString())
-# """))
-slider = Slider(start=-4, end=4, value=1, step=.05, title="Beta")
-
-callback = CustomJS(args=dict(source=source, button=radio_button_group, slider=slider), code="""
+# slider javascript
+slider_callback = CustomJS(args=dict(source=source, button=radio_button_group, slider=slider), code="""
     var data = source.data;
     var f = slider.value;
     var m = button.active;
@@ -201,12 +191,6 @@ callback = CustomJS(args=dict(source=source, button=radio_button_group, slider=s
         var P2 = data['sarah_p2'];
     }
 
-    // var x = data['x'];
-    // var y = data['y'];
-    // var P0 = data['p0'];
-    // var P1 = data['p1'];
-    // var P2 = data['p2'];
-
     for (var i = 0; i < x.length; i++) {
         var P0_beta = P0[i]**f / ( P0[i]**f + P1[i]**f + P2[i]**f ) ;
         var P1_beta = P1[i]**f / ( P0[i]**f + P1[i]**f + P2[i]**f ) ;
@@ -219,9 +203,9 @@ callback = CustomJS(args=dict(source=source, button=radio_button_group, slider=s
 """)
 
 
-
-slider.js_on_change('value', callback)
+slider.js_on_change('value', slider_callback)
 radio_button_group.js_on_change('active', button_callback)
+
 
 layout = column(radio_button_group, slider, p)
 
