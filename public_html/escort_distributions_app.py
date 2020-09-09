@@ -3,7 +3,7 @@ from bokeh.models import ColumnDataSource, CustomJS, Slider, Range1d, RadioButto
 from bokeh.plotting import Figure, output_file, show
 import numpy as np
 
-output_file("public_html\escort_distributions.html")
+output_file("escort_distributions.html")
 
 
 def closure(Z):
@@ -101,7 +101,7 @@ source = ColumnDataSource(data=dict(x=[0]*N_points, y=[0]*N_points,
                                     beta_p0=beta_P0, beta_p1=beta_P1, beta_p2=beta_P2,
                                     sarah_p0=sarah_P0, sarah_p1=sarah_P1, sarah_p2=sarah_P2))
 
-p = Figure(tools="reset, box_zoom", height=800, width=850)
+p = Figure(tools='', toolbar_location=None, height=800, width=850)
 p.grid.grid_line_color = None
 p.axis.visible = False
 p.grid.grid_line_color = None
@@ -114,9 +114,9 @@ left_corner = [0.0, 0.0]
 right_corner = [np.sqrt(2), 0.0]
 top_corner = [np.sqrt(2)/2.0, np.sqrt(6)/2.0]
 
-p.line([left_corner[0], top_corner[0]], [left_corner[1], top_corner[1]], color='black', width=2)
-p.line([right_corner[0], top_corner[0]], [right_corner[1], top_corner[1]], color='black', width=2)
-p.line([left_corner[0], right_corner[0]], [left_corner[1], right_corner[1]], color='black', width=2)
+p.line([left_corner[0], top_corner[0]], [left_corner[1], top_corner[1]], color='black', line_width=2)
+p.line([right_corner[0], top_corner[0]], [right_corner[1], top_corner[1]], color='black', line_width=2)
+p.line([left_corner[0], right_corner[0]], [left_corner[1], right_corner[1]], color='black', line_width=2)
 
 # add points
 p.circle('x', 'y', source=source, size=marker_size, color='navy', alpha=0.8)
